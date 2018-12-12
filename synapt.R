@@ -10,23 +10,21 @@ D %>% group_by(WV, WH) %>% summarize(n=n(), exp_no = paste0(i, collapse=" ")) %>
 D = D %>% filter(i != 11)
 D$exp = tools::file_path_sans_ext(D$exp)
 
-
 prob_panel_bc_fill = "#ECF7FF"
-
-
+prob_panel_bc_fill = "white"
 
 D4errorplot = D %>% select(WH, WV, l1_rel, solutions_l1_error_rel) %>% gather("error", "value", 3:4) 
 p1 = 
   D4errorplot %>% filter(WV == 300) %>%
-  ggplot(aes(x = ordered(WH), y=value,color=error, group=error)) +
+  ggplot(aes(x = ordered(WH), y=1-value,color=error, group=error)) +
   xlab("wave height [velocity at 300 m/s]") +
-  ylab("relative error")
+  ylab("explained intensity")
   
 p2 = 
   D4errorplot %>% filter(WH == 1.5) %>%
-  ggplot(aes(x = ordered(WV), y=value, color=error, group=error)) +
+  ggplot(aes(x = ordered(WV), y=1-value, color=error, group=error)) +
   xlab("wave velocity [height at 1.5 V]") +
-  ylab("relative error")
+  ylab("explained intensity")
   
 add_geoms = function(p, axis_position="left") p +
   geom_line() +
@@ -36,11 +34,11 @@ add_geoms = function(p, axis_position="left") p +
                      breaks = (0:10)/10,
                      position=axis_position) +
   scale_color_manual(values=c("#999999", "#E69F00"),
-                     name="Relative Error",
+                     name="explained intensity",
                      labels=c("all spectrum", "fitted spectrum"))+
   theme_minimal() +
   geom_hline(yintercept=c(0,1)) +
-  theme(legend.position=c(.7,.9))+
+  theme(legend.position=c(.3,.8))+
   coord_flip()
 
 r1 = add_geoms(p1); r2 = add_geoms(p2, "right")
@@ -61,7 +59,7 @@ prob_plot = function(cz = "cz.prob", axis_position="left"){
     scale_y_continuous(labels = scales::percent,
                        limits = c(0,1),
                        breaks = c(0.2, .5, .8)) +
-    geom_hline(yintercept=c(0,1), color="red") +
+    geom_hline(yintercept=1/9, color="orange", size=2) +
     geom_line()  +
     theme_minimal() +
     geom_point() +
@@ -120,14 +118,10 @@ g2 = add_geoms(i2, "right") + ylab("")
 intensities_plot = plot_grid(g1, g2, ncol=2, rel_widths = c(1, 2))
 
 
-top = plot_grid(error_panel, probs, ncol=2, rel_widths = c(.7, 2))
-voltron = plot_grid(top, intensities_plot, nrow=2, rel_heights = c(2,.5))
+top = plot_grid(error_panel, probs, ncol=2, rel_widths = c(.7, 2), labels = c("A", "B"))
+voltron = plot_grid(top, intensities_plot, nrow=2, rel_heights = c(2,.5), labels = c("", "C"))
 
 ggsave("synapt.pdf", voltron, width = 17, height = 15, units = "in", limitsize = F)
-
-
-
-
 
 
 
